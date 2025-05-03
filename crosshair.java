@@ -1,63 +1,70 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 
-public class Crosshair extends JFrame {
-    private Color crosshairColor = Color.cyan;
-    private int crosshairSize = 5;
+public class CrosshairOverlay extends JFrame {
+    private static final int DOT_SIZE = 5;
+    private Color dotColor = Color.cyan;
+    private int dotSize = DOT_SIZE;
 
-    public Crosshair() {
+    public CrosshairOverlay() {
+        // Set up the frame
+        setUndecorated(true); // Remove window decorations
+        setAlwaysOnTop(true); // Always stay on top
+        setFocusableWindowState(false); // Prevent window from receiving focus
+        setFocusable(false); // Prevent window from receiving focus
+        
+        // Set window to be transparent
+        setBackground(new Color(0, 0, 0, 0));
         setUndecorated(true);
-        setBackground(new Color(0, 0, 0, 0)); // Transparent background
         setAlwaysOnTop(true);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(Toolkit.getDefaultToolkit().getScreenSize());
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
-
-        CrosshairPanel crosshairPanel = new CrosshairPanel();
-        setContentPane(crosshairPanel);
-
-        // Key listener for toggling crosshair visibility
-        addKeyListener(new KeyAdapter() {
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                    setVisible(false); // Hide crosshair on ESC key
-                }
+        
+        // Set window size and position
+        setSize(100, 100);
+        setLocationRelativeTo(null); // Center the window
+        
+        // Create a custom component for the dot
+        JPanel dotPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setColor(dotColor);
+                g2d.fillOval(getWidth() / 2 - dotSize / 2, 
+                            getHeight() / 2 - dotSize / 2, 
+                            dotSize, dotSize);
+            }
+        };
+        
+        // Make the panel transparent
+        dotPanel.setOpaque(false);
+        
+        // Add the panel to the frame
+        add(dotPanel);
+        
+        // Add window listener to center the dot when window is moved
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                repaint();
             }
         });
-        setFocusable(true);
     }
-
+    
+    public void setDotColor(Color color) {
+        this.dotColor = color;
+        repaint();
+    }
+    
+    public void setDotSize(int size) {
+        this.dotSize = size;
+        repaint();
+    }
+    
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            Crosshair overlay = new Crosshair();
+            CrosshairOverlay overlay = new CrosshairOverlay();
             overlay.setVisible(true);
         });
     }
-
-    class CrosshairPanel extends JPanel {
-        public CrosshairPanel() {
-            setOpaque(false);
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2 = (Graphics2D) g;
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            int w = getWidth();
-            int h = getHeight();
-            int centerX = w / 2;
-            int centerY = h / 2;
-
-            g2.setColor(crosshairColor);
-
-            // Draw horizontal line
-            g2.drawLine(centerX - crosshairSize, centerY, centerX + crosshairSize, centerY);
-            // Draw vertical line
-            g2.drawLine(centerX, centerY - crosshairSize, centerX, centerY + crosshairSize);
-        }    
-    } 
 }
